@@ -520,6 +520,9 @@ export default function AdminPage() {
   const [loading,    setLoading]    = useState(true);
   const [showAdd,    setShowAdd]    = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [tab,        setTab]        = useState<'partidos' | 'jugadores'>('partidos');
+  const [editingPlayer, setEditingPlayer] = useState<string | null>(null);
+  const [editPlayerData, setEditPlayerData] = useState<{ name: string; spec: SpecificPosition } | null>(null);
 
   const loadData = useCallback(async () => {
     const res = await fetch('/api/admin/data');
@@ -605,6 +608,54 @@ export default function AdminPage() {
     window.location.href = '/admin/login';
   }
 
+  async function handlePlayerEdit(oldName: string, newName: string, newSpec: SpecificPosition) {
+    if (!newName.trim()) return;
+    const updatedPlayers = players.map(p =>
+      p.name === oldName
+        ? { ...p, name: newName.trim(), specificPosition: newSpec, position: posGroupFromSpec(newSpec) }
+        : p
+    );
+    // If name changed, update goals and matches that reference this player
+    const updatedGoals = goals.map(g =>
+      g.scorer === oldName ? { ...g, scorer: newName.trim() } : g
+    );
+    const updatedMatches = matches.map(m => ({
+      ...m,
+      lineup: m.lineup.map(ln => ln === oldName ? newName.trim() : ln),
+      bench: m.bench.map(b => b === oldName ? newName.trim() : b),
+    }));
+    setPlayers(updatedPlayers);
+    setGoals(updatedGoals);
+    setMatches(updatedMatches);
+    setEditingPlayer(null);
+    setSaveStatus('saving');
+    await Promise.all([
+      saveType('players', updatedPlayers),
+      saveType('goals', updatedGoals),
+      saveType('matches', updatedMatches),
+    ]);
+  }
+
+  async function handlePlayerDelete(name: string) {
+    if (!confirm(`¿Eliminar a ${name}?\nEsta acción no se puede deshacer.`)) return;
+    const updatedPlayers = players.filter(p => p.name !== name);
+    const updatedGoals   = goals.filter(g => g.scorer !== name);
+    const updatedMatches = matches.map(m => ({
+      ...m,
+      lineup: m.lineup.filter(ln => ln !== name),
+      bench: m.bench.filter(b => b !== name),
+    }));
+    setPlayers(updatedPlayers);
+    setGoals(updatedGoals);
+    setMatches(updatedMatches);
+    setSaveStatus('saving');
+    await Promise.all([
+      saveType('players', updatedPlayers),
+      saveType('goals', updatedGoals),
+      saveType('matches', updatedMatches),
+    ]);
+  }
+
   // Sort matches chronologically; unknown dates go to the end
   const sortedMatches = [...matches].sort((a, b) => parseDateMs(a.date) - parseDateMs(b.date));
 
@@ -657,31 +708,166 @@ export default function AdminPage() {
           ))}
         </div>
 
-        <div className="flex items-center justify-between">
-          <h2 className="text-white font-black text-lg">
-            Partidos <span className="text-white/30 text-sm font-normal ml-1">ordenados por fecha</span>
-          </h2>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="bg-[#F5A623] hover:bg-[#d4911e] text-[#0A1A3E] font-black px-5 py-2.5 rounded-xl transition-colors cursor-pointer text-sm"
-          >
-            ＋ Agregar Partido
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {sortedMatches.map(match => (
-            <MatchCard
-              key={match.id}
-              match={match}
-              players={players}
-              goals={goals}
-              onSave={handleMatchSave}
-              onDelete={() => handleMatchDelete(match.id)}
-              onAddPlayer={handleAddPlayer}
-            />
+        {/* Tab navigation */}
+        <div className="flex gap-2 border-b border-white/10">
+          {(['partidos', 'jugadores'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-3 font-semibold text-sm uppercase tracking-wider border-b-2 transition-colors cursor-pointer ${
+                tab === t
+                  ? 'text-white border-b-[#F5A623]'
+                  : 'text-white/40 hover:text-white/60 border-b-transparent'
+              }`}
+            >
+              {t === 'partidos' ? 'Partidos' : 'Jugadores'}
+            </button>
           ))}
         </div>
+
+        {/* PARTIDOS TAB */}
+        {tab === 'partidos' && (
+          <>
+            <div className="flex items-center justify-between">
+              <h2 className="text-white font-black text-lg">
+                Partidos <span className="text-white/30 text-sm font-normal ml-1">ordenados por fecha</span>
+              </h2>
+              <button
+                onClick={() => setShowAdd(true)}
+                className="bg-[#F5A623] hover:bg-[#d4911e] text-[#0A1A3E] font-black px-5 py-2.5 rounded-xl transition-colors cursor-pointer text-sm"
+              >
+                ＋ Agregar Partido
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {sortedMatches.map(match => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  players={players}
+                  goals={goals}
+                  onSave={handleMatchSave}
+                  onDelete={() => handleMatchDelete(match.id)}
+                  onAddPlayer={handleAddPlayer}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* JUGADORES TAB */}
+        {tab === 'jugadores' && (
+          <>
+            <div className="flex items-center justify-between">
+              <h2 className="text-white font-black text-lg">Jugadores</h2>
+              <button
+                onClick={() => { setEditingPlayer('NEW'); setEditPlayerData({ name: '', spec: 'EXT' }); }}
+                className="bg-[#F5A623] hover:bg-[#d4911e] text-[#0A1A3E] font-black px-5 py-2.5 rounded-xl transition-colors cursor-pointer text-sm"
+              >
+                ＋ Agregar Jugador
+              </button>
+            </div>
+
+            {/* Add/Edit Player Form */}
+            {editingPlayer && editPlayerData && (
+              <div className="bg-[#11296B]/40 border border-[#F5A623]/30 rounded-xl p-4 space-y-3">
+                <p className="text-[#F5A623] text-xs font-bold uppercase tracking-wider">
+                  {editingPlayer === 'NEW' ? 'Nuevo jugador' : `Editar: ${editingPlayer}`}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                  <div>
+                    <label className="text-white/40 text-[10px] block mb-1">Nombre *</label>
+                    <input
+                      className={INPUT}
+                      value={editPlayerData.name}
+                      onChange={e => setEditPlayerData({ ...editPlayerData, name: e.target.value })}
+                      placeholder="Nombre completo"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="text-white/40 text-[10px] block mb-1">Posición *</label>
+                    <select
+                      className={SELECT}
+                      value={editPlayerData.spec}
+                      onChange={e => setEditPlayerData({ ...editPlayerData, spec: e.target.value as SpecificPosition })}
+                    >
+                      {SPECIFIC_POSITIONS.map(p => (
+                        <option key={p.value} value={p.value}>{p.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (editingPlayer === 'NEW') {
+                          handleAddPlayer({ id: Math.max(...players.map(p => p.id), 0) + 1, name: editPlayerData.name.trim(), specificPosition: editPlayerData.spec, position: posGroupFromSpec(editPlayerData.spec), goals: 0, assists: 0, appearances: 0, starts: 0 });
+                        } else {
+                          handlePlayerEdit(editingPlayer, editPlayerData.name, editPlayerData.spec);
+                        }
+                        setEditingPlayer(null);
+                      }}
+                      disabled={!editPlayerData.name.trim()}
+                      className="bg-[#F5A623] hover:bg-[#d4911e] text-[#0A1A3E] font-black px-4 py-2 rounded-lg transition-colors cursor-pointer disabled:opacity-40 whitespace-nowrap text-sm"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      onClick={() => setEditingPlayer(null)}
+                      className="text-white/40 hover:text-white px-3 py-2 cursor-pointer text-sm"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Players table */}
+            <div className="overflow-x-auto rounded-lg border border-white/10">
+              <table className="w-full text-sm min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-white/10 bg-[#0A1A3E]/60">
+                    <th className="px-4 py-3 text-left text-white/40 text-[10px] uppercase tracking-wider">Nombre</th>
+                    <th className="px-4 py-3 text-left text-white/40 text-[10px] uppercase tracking-wider">Posición</th>
+                    <th className="px-4 py-3 text-center text-white/40 text-[10px] uppercase w-12">P</th>
+                    <th className="px-4 py-3 text-center text-white/40 text-[10px] uppercase w-12">T</th>
+                    <th className="px-4 py-3 text-center text-white/40 text-[10px] uppercase w-12">G</th>
+                    <th className="px-4 py-3 text-center text-white/40 text-[10px] uppercase w-12">A</th>
+                    <th className="px-4 py-3 text-center text-white/40 text-[10px] uppercase">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {players.map((pl, i) => (
+                    <tr key={pl.id} className={`border-b border-white/5 ${i % 2 === 0 ? 'bg-[#11296B]/20' : ''}`}>
+                      <td className="px-4 py-3"><span className="text-white/80 text-sm">{pl.name}</span></td>
+                      <td className="px-4 py-3"><span className="text-white/60 text-xs">{pl.specificPosition}</span></td>
+                      <td className="px-4 py-3 text-center text-white/80">{pl.appearances}</td>
+                      <td className="px-4 py-3 text-center text-white/80">{pl.starts}</td>
+                      <td className="px-4 py-3 text-center text-[#F5A623] font-bold">{pl.goals}</td>
+                      <td className="px-4 py-3 text-center text-white/80">{pl.assists}</td>
+                      <td className="px-4 py-3 text-center space-x-2">
+                        <button
+                          onClick={() => { setEditingPlayer(pl.name); setEditPlayerData({ name: pl.name, spec: pl.specificPosition }); }}
+                          className="text-sky-400 hover:text-sky-300 text-xs px-2 py-1 rounded hover:bg-sky-500/10 cursor-pointer transition-colors"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handlePlayerDelete(pl.name)}
+                          className="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded hover:bg-red-500/10 cursor-pointer transition-colors"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       {showAdd && (
