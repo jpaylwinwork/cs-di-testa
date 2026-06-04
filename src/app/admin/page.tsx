@@ -33,8 +33,8 @@ function parseDateMs(d: string): number {
 function posGroupFromSpec(sp: SpecificPosition): PositionGroup {
   if (sp === 'A') return 'POR';
   if (['CD','CI','LD','LI'].includes(sp)) return 'DEF';
-  if (['MCC','MCO','EXT','ED','EI'].includes(sp)) return 'MED';
-  return 'DEL';
+  if (['MCC','MCO','ED','EI'].includes(sp)) return 'MED';
+  return 'DEL'; // EXT (Extremo), DC (Delantero Centro)
 }
 
 const SPECIFIC_POSITIONS: { value: SpecificPosition; label: string }[] = [

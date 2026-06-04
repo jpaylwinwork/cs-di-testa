@@ -16,22 +16,22 @@ interface Props {
 }
 
 export default function Dashboard({ players, goals, matches }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('position');
+  const [activeTab, setActiveTab] = useState<Tab>('cancha');
 
   return (
     <div>
       <div className="flex flex-wrap gap-1 p-1 bg-[#11296B]/40 rounded-xl border border-white/10 w-fit">
-        <TabButton active={activeTab === 'position'}    onClick={() => setActiveTab('position')}>
-          Por Posición
+        <TabButton active={activeTab === 'cancha'}      onClick={() => setActiveTab('cancha')}>
+          Cancha
         </TabButton>
         <TabButton active={activeTab === 'leaderboard'} onClick={() => setActiveTab('leaderboard')}>
           Tabla
         </TabButton>
-        <TabButton active={activeTab === 'cancha'}      onClick={() => setActiveTab('cancha')}>
-          Cancha
-        </TabButton>
         <TabButton active={activeTab === 'fixture'}     onClick={() => setActiveTab('fixture')}>
           Fixture
+        </TabButton>
+        <TabButton active={activeTab === 'position'}    onClick={() => setActiveTab('position')}>
+          Por Posición
         </TabButton>
       </div>
 
