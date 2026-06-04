@@ -1,10 +1,30 @@
-import path from 'path';
 import { Player, Match, Goal } from '@/data/types';
 
-async function readRuntime<T>(filename: string): Promise<T | null> {
+const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+
+// ── Read from Vercel Blob (production) or local JSON (development) ──────────
+
+async function readBlob<T>(key: string): Promise<T | null> {
+  // Production: use Vercel Blob
+  if (BLOB_TOKEN) {
+    try {
+      const { list, head } = await import('@vercel/blob');
+      const { blobs } = await list({ prefix: key, token: BLOB_TOKEN });
+      const match = blobs.find(b => b.pathname === key);
+      if (!match) return null;
+      const res = await fetch(match.url);
+      if (!res.ok) return null;
+      return res.json() as Promise<T>;
+    } catch {
+      return null;
+    }
+  }
+
+  // Development: use local filesystem
   try {
-    const fs = await import('fs/promises');
-    const filePath = path.join(process.cwd(), 'src', 'data', 'runtime', filename);
+    const fs   = await import('fs/promises');
+    const path = await import('path');
+    const filePath = path.join(process.cwd(), 'src', 'data', 'runtime', `${key}.json`);
     const raw = await fs.readFile(filePath, 'utf-8');
     return JSON.parse(raw) as T;
   } catch {
@@ -13,13 +33,13 @@ async function readRuntime<T>(filename: string): Promise<T | null> {
 }
 
 export async function getPlayers(): Promise<Player[]> {
-  return (await readRuntime<Player[]>('players.json')) ?? (await import('@/data/players')).players;
+  return (await readBlob<Player[]>('players')) ?? (await import('@/data/players')).players;
 }
 
 export async function getMatches(): Promise<Match[]> {
-  return (await readRuntime<Match[]>('matches.json')) ?? (await import('@/data/matches')).matches;
+  return (await readBlob<Match[]>('matches')) ?? (await import('@/data/matches')).matches;
 }
 
 export async function getGoals(): Promise<Goal[]> {
-  return (await readRuntime<Goal[]>('goals.json')) ?? (await import('@/data/goals')).goals;
+  return (await readBlob<Goal[]>('goals')) ?? (await import('@/data/goals')).goals;
 }
