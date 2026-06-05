@@ -42,8 +42,8 @@ export default function TeamCarousel() {
 
   return (
     <div className="relative w-full bg-[#0A1A3E] group">
-      {/* Main carousel */}
-      <div className="relative w-full h-80 overflow-hidden rounded-xl">
+      {/* Main carousel - 16:9 aspect ratio */}
+      <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: '16/9' }}>
         <Image
           src={`/team-photos/${PHOTOS[current]}`}
           alt={`Team photo ${current + 1}`}

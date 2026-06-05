@@ -8,7 +8,7 @@ import PitchView from './PitchView';
 import FixtureView from './FixtureView';
 import TeamCarousel from './TeamCarousel';
 
-type Tab = 'position' | 'leaderboard' | 'cancha' | 'fixture';
+type Tab = 'cancha' | 'goleadores' | 'fixture' | 'posicion' | 'fotos';
 
 interface Props {
   players: Player[];
@@ -21,30 +21,32 @@ export default function Dashboard({ players, goals, matches }: Props) {
 
   return (
     <div className="space-y-4">
-      <TeamCarousel />
-
       <div className="overflow-x-auto">
         <div className="flex gap-1 p-1 bg-[#11296B]/40 rounded-xl border border-white/10 w-fit">
         <TabButton active={activeTab === 'cancha'}      onClick={() => setActiveTab('cancha')}>
           Cancha
         </TabButton>
-        <TabButton active={activeTab === 'leaderboard'} onClick={() => setActiveTab('leaderboard')}>
-          Tabla
+        <TabButton active={activeTab === 'goleadores'}  onClick={() => setActiveTab('goleadores')}>
+          Goleadores
         </TabButton>
         <TabButton active={activeTab === 'fixture'}     onClick={() => setActiveTab('fixture')}>
           Fixture
         </TabButton>
-        <TabButton active={activeTab === 'position'}    onClick={() => setActiveTab('position')}>
+        <TabButton active={activeTab === 'posicion'}    onClick={() => setActiveTab('posicion')}>
           Por Posición
+        </TabButton>
+        <TabButton active={activeTab === 'fotos'}       onClick={() => setActiveTab('fotos')}>
+          Fotos
         </TabButton>
         </div>
       </div>
 
       <div className="mt-6">
-        {activeTab === 'position'    && <PositionView players={players} matches={matches} goals={goals} />}
-        {activeTab === 'leaderboard' && <Leaderboard  players={players} goals={goals} matches={matches} />}
         {activeTab === 'cancha'      && <PitchView    players={players} matches={matches} goals={goals} />}
+        {activeTab === 'goleadores'  && <Leaderboard  players={players} goals={goals} matches={matches} />}
         {activeTab === 'fixture'     && <FixtureView  matches={matches} goals={goals} players={players} />}
+        {activeTab === 'posicion'    && <PositionView players={players} matches={matches} goals={goals} />}
+        {activeTab === 'fotos'       && <TeamCarousel />}
       </div>
     </div>
   );

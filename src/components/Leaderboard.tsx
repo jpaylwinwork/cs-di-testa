@@ -5,13 +5,11 @@ import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Player, Goal, GoalType, Match } from '@/data/types';
 import { PlayerModal } from './PlayerModal';
 
-type SortKey = 'goals' | 'assists' | 'appearances' | 'starts';
+type SortKey = 'goals' | 'assists';
 
 const COLUMNS: { key: SortKey; label: string }[] = [
-  { key: 'goals',       label: 'Goles'  },
-  { key: 'assists',     label: 'Asist'  },
-  { key: 'appearances', label: 'PJ'     },
-  { key: 'starts',      label: 'Titular'},
+  { key: 'goals',   label: 'Goles' },
+  { key: 'assists', label: 'Asist' },
 ];
 
 const POS_COLORS: Record<string, string> = {
@@ -40,7 +38,10 @@ export default function Leaderboard({ players, goals, matches = [] }: Props) {
   const [sortDesc, setSortDesc] = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
-  const sorted = [...players].sort((a, b) => {
+  // Only show players with goals or assists
+  const filtered = players.filter(p => p.goals > 0 || p.assists > 0);
+
+  const sorted = [...filtered].sort((a, b) => {
     const diff = a[sortKey] - b[sortKey];
     return sortDesc ? -diff : diff;
   });
@@ -79,12 +80,11 @@ export default function Leaderboard({ players, goals, matches = [] }: Props) {
         <thead>
           <tr className="bg-[#11296B]/80 border-b border-white/10">
             <th className="px-4 py-3 text-left text-white/40 text-xs uppercase tracking-wider font-semibold w-10">#</th>
-            <th className="px-4 py-3 text-left text-white/40 text-xs uppercase tracking-wider font-semibold">Jugador</th>
-            <th className="px-4 py-3 text-center text-white/40 text-xs uppercase tracking-wider font-semibold w-16">Pos</th>
+            <th className="px-4 py-3 text-left text-white/40 text-xs uppercase tracking-wider font-semibold flex-1">Jugador</th>
             {COLUMNS.map((col) => (
               <th
                 key={col.key}
-                className="px-4 py-3 text-center text-xs uppercase tracking-wider font-semibold cursor-pointer select-none group w-20"
+                className="px-4 py-3 text-center text-xs uppercase tracking-wider font-semibold cursor-pointer select-none group w-24"
                 onClick={() => handleSort(col.key)}
               >
                 <div className="flex items-center justify-center gap-1">
@@ -141,14 +141,9 @@ export default function Leaderboard({ players, goals, matches = [] }: Props) {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-center">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${POS_COLORS[player.position]}`}>
-                    {player.position}
-                  </span>
-                </td>
                 {COLUMNS.map((col) => (
                   <td key={col.key} className="px-4 py-3 text-center">
-                    <span className={`font-bold ${sortKey === col.key && isFirst ? 'text-[#F5A623]' : sortKey === col.key ? 'text-white' : 'text-white/70'}`}>
+                    <span className={`font-bold text-lg ${col.key === 'goals' ? 'text-[#F5A623]' : 'text-white'}`}>
                       {player[col.key]}
                     </span>
                   </td>
