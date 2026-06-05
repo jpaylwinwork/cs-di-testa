@@ -1,5 +1,9 @@
-import { Player, PositionGroup } from '@/data/types';
+'use client';
+
+import { useState } from 'react';
+import { Player, PositionGroup, Match, Goal } from '@/data/types';
 import PlayerCard from './PlayerCard';
+import { PlayerModal } from './PlayerModal';
 
 const POSITION_META: Record<PositionGroup, { label: string; color: string }> = {
   POR: { label: 'Arqueros',        color: 'bg-amber-400/20 text-amber-300 border-amber-400/30'     },
@@ -12,9 +16,13 @@ const POSITIONS: PositionGroup[] = ['POR', 'DEF', 'MED', 'DEL'];
 
 interface Props {
   players: Player[];
+  matches?: Match[];
+  goals?: Goal[];
 }
 
-export default function PositionView({ players }: Props) {
+export default function PositionView({ players, matches = [], goals = [] }: Props) {
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+
   return (
     <div className="space-y-8">
       {POSITIONS.map((pos) => {
@@ -47,12 +55,27 @@ export default function PositionView({ players }: Props) {
 
             <div className="space-y-2">
               {group.map((player, i) => (
-                <PlayerCard key={player.id} player={player} isTop={i === 0} />
+                <PlayerCard
+                  key={player.id}
+                  player={player}
+                  isTop={i === 0}
+                  onClick={() => setSelectedPlayer(player)}
+                />
               ))}
             </div>
           </section>
         );
       })}
+
+      {selectedPlayer && (
+        <PlayerModal
+          player={selectedPlayer}
+          matches={matches}
+          goals={goals}
+          totalMatches={matches.length}
+          onClose={() => setSelectedPlayer(null)}
+        />
+      )}
     </div>
   );
 }

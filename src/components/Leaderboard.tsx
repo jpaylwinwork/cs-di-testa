@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
-import { Player, Goal, GoalType } from '@/data/types';
+import { Player, Goal, GoalType, Match } from '@/data/types';
+import { PlayerModal } from './PlayerModal';
 
 type SortKey = 'goals' | 'assists' | 'appearances' | 'starts';
 
@@ -31,11 +32,13 @@ const GOAL_TYPE_STYLES: Record<GoalType, { label: string; color: string }> = {
 interface Props {
   players: Player[];
   goals: Goal[];
+  matches?: Match[];
 }
 
-export default function Leaderboard({ players, goals }: Props) {
+export default function Leaderboard({ players, goals, matches = [] }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('goals');
   const [sortDesc, setSortDesc] = useState(true);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   const sorted = [...players].sort((a, b) => {
     const diff = a[sortKey] - b[sortKey];
@@ -107,9 +110,10 @@ export default function Leaderboard({ players, goals }: Props) {
             return (
               <tr
                 key={player.id}
+                onClick={() => setSelectedPlayer(player)}
                 className={`
                   border-b border-white/5 transition-colors duration-100
-                  hover:bg-[#1a3a8f]/40
+                  hover:bg-[#1a3a8f]/40 cursor-pointer
                   ${isFirst ? 'bg-[#F5A623]/5' : i % 2 === 0 ? 'bg-[#11296B]/30' : 'bg-transparent'}
                 `}
               >
@@ -155,6 +159,15 @@ export default function Leaderboard({ players, goals }: Props) {
         </tbody>
       </table>
     </div>
+    {selectedPlayer && (
+      <PlayerModal
+        player={selectedPlayer}
+        matches={matches}
+        goals={goals}
+        totalMatches={matches.length}
+        onClose={() => setSelectedPlayer(null)}
+      />
+    )}
     </div>
   );
 }

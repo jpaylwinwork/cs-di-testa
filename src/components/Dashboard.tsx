@@ -36,10 +36,10 @@ export default function Dashboard({ players, goals, matches }: Props) {
       </div>
 
       <div className="mt-6">
-        {activeTab === 'position'    && <PositionView players={players} />}
-        {activeTab === 'leaderboard' && <Leaderboard  players={players} goals={goals} />}
+        {activeTab === 'position'    && <PositionView players={players} matches={matches} goals={goals} />}
+        {activeTab === 'leaderboard' && <Leaderboard  players={players} goals={goals} matches={matches} />}
         {activeTab === 'cancha'      && <PitchView    players={players} matches={matches} goals={goals} />}
-        {activeTab === 'fixture'     && <FixtureView  matches={matches} goals={goals} />}
+        {activeTab === 'fixture'     && <FixtureView  matches={matches} goals={goals} players={players} />}
       </div>
     </div>
   );

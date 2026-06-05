@@ -1,4 +1,8 @@
-import { Match, Goal } from '@/data/types';
+'use client';
+
+import { useState } from 'react';
+import { Match, Goal, Player } from '@/data/types';
+import { MatchModal } from './MatchModal';
 
 const TYPE_BADGE: Record<string, string> = {
   Liga:     'bg-sky-500/20 text-sky-300 border-sky-500/30',
@@ -15,9 +19,11 @@ const OUTCOME_STYLE: Record<string, { bar: string; badge: string; label: string 
 interface Props {
   matches: Match[];
   goals: Goal[];
+  players?: Player[];
 }
 
-export default function FixtureView({ matches, goals }: Props) {
+export default function FixtureView({ matches, goals, players = [] }: Props) {
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const played  = matches.filter(m => m.rival !== '?');
   const pending = matches.filter(m => m.rival === '?');
 
@@ -61,7 +67,8 @@ export default function FixtureView({ matches, goals }: Props) {
           return (
             <div
               key={match.id}
-              className={`px-4 py-3 rounded-xl bg-[#11296B]/40 border border-white/10 border-l-4 ${out.bar}`}
+              onClick={() => setSelectedMatch(match)}
+              className={`px-4 py-3 rounded-xl bg-[#11296B]/40 border border-white/10 border-l-4 ${out.bar} cursor-pointer hover:bg-[#1a3a8f]/40 transition-colors`}
             >
               {/*
                 3-column grid with EQUAL outer widths so the score is always
@@ -128,6 +135,15 @@ export default function FixtureView({ matches, goals }: Props) {
             </div>
           ))}
         </div>
+      )}
+
+      {selectedMatch && (
+        <MatchModal
+          match={selectedMatch}
+          players={players}
+          goals={goals}
+          onClose={() => setSelectedMatch(null)}
+        />
       )}
     </div>
   );
