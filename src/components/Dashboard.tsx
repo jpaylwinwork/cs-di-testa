@@ -6,6 +6,7 @@ import PositionView from './PositionView';
 import Leaderboard from './Leaderboard';
 import PitchView from './PitchView';
 import FixtureView from './FixtureView';
+import TeamCarousel from './TeamCarousel';
 
 type Tab = 'position' | 'leaderboard' | 'cancha' | 'fixture';
 
@@ -19,8 +20,11 @@ export default function Dashboard({ players, goals, matches }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('cancha');
 
   return (
-    <div>
-      <div className="flex flex-wrap gap-1 p-1 bg-[#11296B]/40 rounded-xl border border-white/10 w-fit">
+    <div className="space-y-4">
+      <TeamCarousel />
+
+      <div className="overflow-x-auto">
+        <div className="flex gap-1 p-1 bg-[#11296B]/40 rounded-xl border border-white/10 w-fit">
         <TabButton active={activeTab === 'cancha'}      onClick={() => setActiveTab('cancha')}>
           Cancha
         </TabButton>
@@ -33,6 +37,7 @@ export default function Dashboard({ players, goals, matches }: Props) {
         <TabButton active={activeTab === 'position'}    onClick={() => setActiveTab('position')}>
           Por Posición
         </TabButton>
+        </div>
       </div>
 
       <div className="mt-6">

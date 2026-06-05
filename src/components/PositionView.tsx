@@ -46,22 +46,55 @@ export default function PositionView({ players, matches = [], goals = [] }: Prop
               <span className="text-white/30 text-xs">({group.length})</span>
             </div>
 
-            <div className="hidden md:grid grid-cols-[1fr_repeat(4,3rem)] gap-x-6 px-4 mb-1">
+            <div className="hidden lg:grid grid-cols-[1fr_repeat(4,3rem)] gap-x-6 px-4 mb-1">
               <span className="text-white/30 text-[10px] uppercase tracking-wider">Jugador</span>
               {['Goles', 'Asist', 'PJ', 'Titular'].map((h) => (
                 <span key={h} className="text-white/30 text-[10px] uppercase tracking-wider text-center">{h}</span>
               ))}
             </div>
 
+            {/* Mobile header */}
+            <div className="block lg:hidden px-4 mb-2 text-[9px] text-white/40 uppercase tracking-wider">
+              G=Goles · A=Asist · PJ=Partidos · T=Titular
+            </div>
+
             <div className="space-y-2">
               {group.map((player, i) => (
-                <PlayerCard
-                  key={player.id}
-                  player={player}
-                  isTop={i === 0}
-                  onClick={() => setSelectedPlayer(player)}
-                />
+                <div key={player.id} className="block lg:hidden space-y-1">
+                  {/* Mobile: Stacked layout */}
+                  <div
+                    onClick={() => setSelectedPlayer(player)}
+                    className="px-4 py-3 rounded-lg bg-[#11296B]/60 hover:bg-[#1a3a8f]/60 transition-colors cursor-pointer border border-white/8"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-white/90">
+                        {player.name}
+                      </span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-[#F5A623] font-black text-lg">{player.goals}</span>
+                        <span className="text-[#F5A623] text-xs">G</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 text-center text-[10px]">
+                      <div><div className="font-bold text-white text-xs">{player.assists}</div><div className="text-white/40">A</div></div>
+                      <div><div className="font-bold text-sky-300 text-xs">{player.appearances}</div><div className="text-white/40">PJ</div></div>
+                      <div><div className="font-bold text-white text-xs">{player.starts}</div><div className="text-white/40">T</div></div>
+                    </div>
+                  </div>
+                </div>
               ))}
+
+              {/* Desktop: Card layout */}
+              <div className="hidden lg:space-y-2 lg:block">
+                {group.map((player, i) => (
+                  <PlayerCard
+                    key={player.id}
+                    player={player}
+                    isTop={i === 0}
+                    onClick={() => setSelectedPlayer(player)}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         );
