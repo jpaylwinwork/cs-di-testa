@@ -33,13 +33,26 @@ async function readBlob<T>(key: string): Promise<T | null> {
 }
 
 export async function getPlayers(): Promise<Player[]> {
-  return (await readBlob<Player[]>('players')) ?? (await import('@/data/players')).players;
+  const fromBlob = await readBlob<Player[]>('players');
+  if (fromBlob) return fromBlob;
+
+  // Force fresh import by bypassing Node's require cache
+  delete require.cache[require.resolve('@/data/players')];
+  return (await import('@/data/players')).players;
 }
 
 export async function getMatches(): Promise<Match[]> {
-  return (await readBlob<Match[]>('matches')) ?? (await import('@/data/matches')).matches;
+  const fromBlob = await readBlob<Match[]>('matches');
+  if (fromBlob) return fromBlob;
+
+  delete require.cache[require.resolve('@/data/matches')];
+  return (await import('@/data/matches')).matches;
 }
 
 export async function getGoals(): Promise<Goal[]> {
-  return (await readBlob<Goal[]>('goals')) ?? (await import('@/data/goals')).goals;
+  const fromBlob = await readBlob<Goal[]>('goals');
+  if (fromBlob) return fromBlob;
+
+  delete require.cache[require.resolve('@/data/goals')];
+  return (await import('@/data/goals')).goals;
 }
