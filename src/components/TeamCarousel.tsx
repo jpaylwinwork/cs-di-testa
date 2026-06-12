@@ -58,16 +58,18 @@ export default function TeamCarousel() {
         {/* Controls - hidden until hover */}
         <button
           onClick={prev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/40 hover:bg-black/60 text-white transition-all opacity-0 group-hover:opacity-100"
+          aria-label="Foto anterior"
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 p-1.5 sm:p-2 rounded-full bg-black/50 hover:bg-black/60 text-white transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={20} className="sm:w-6 sm:h-6" />
         </button>
 
         <button
           onClick={next}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/40 hover:bg-black/60 text-white transition-all opacity-0 group-hover:opacity-100"
+          aria-label="Foto siguiente"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 p-1.5 sm:p-2 rounded-full bg-black/50 hover:bg-black/60 text-white transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={20} className="sm:w-6 sm:h-6" />
         </button>
 
         {/* Dots indicator */}

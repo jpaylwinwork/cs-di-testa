@@ -17,10 +17,10 @@ export default async function Page() {
   return (
     <main className="min-h-screen bg-[#0A1A3E]">
       <Header />
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="max-w-5xl mx-auto px-4 py-4 sm:py-6">
         <News />
       </div>
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-5 sm:py-8 pb-8">
         <Dashboard players={players} goals={goals} matches={matches} />
       </div>
     </main>

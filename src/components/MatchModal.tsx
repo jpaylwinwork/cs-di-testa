@@ -32,8 +32,8 @@ export function MatchModal({ match, players, goals, onClose }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-2xl bg-[#0A1A3E] border border-white/15 rounded-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full sm:max-w-2xl max-h-[90vh] sm:max-h-none bg-[#0A1A3E] border border-white/15 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
 
         {/* Header with match info */}
         <div className="px-5 py-4 border-b border-white/10 bg-[#11296B]/50">
@@ -72,7 +72,7 @@ export function MatchModal({ match, players, goals, onClose }: {
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto max-h-96 px-5 py-4 space-y-4">
+        <div className="overflow-y-auto flex-1 min-h-0 max-h-[50vh] sm:max-h-96 px-4 sm:px-5 py-4 space-y-4">
           {/* Scorers */}
           {uniqueScorers.length > 0 && (
             <div>
@@ -103,10 +103,10 @@ export function MatchModal({ match, players, goals, onClose }: {
           {lineup.length > 0 && (
             <div>
               <p className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-2">Once Titular ({lineup.length})</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {lineup.map(p => (
                   <div key={p.id} className="flex items-center justify-between px-3 py-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                    <span className="text-white/90 text-sm">{p.name}</span>
+                    <span className="text-white/90 text-sm truncate mr-2">{p.name}</span>
                     <span className="text-white/40 text-xs">{p.specificPosition}</span>
                   </div>
                 ))}
@@ -118,10 +118,10 @@ export function MatchModal({ match, players, goals, onClose }: {
           {bench.length > 0 && (
             <div>
               <p className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-2">Suplentes ({bench.length})</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {bench.map(p => (
                   <div key={p.id} className="flex items-center justify-between px-3 py-2 bg-white/5 rounded-lg border border-white/10">
-                    <span className="text-white/70 text-sm">{p.name}</span>
+                    <span className="text-white/70 text-sm truncate mr-2">{p.name}</span>
                     <span className="text-white/30 text-xs">{p.specificPosition}</span>
                   </div>
                 ))}
