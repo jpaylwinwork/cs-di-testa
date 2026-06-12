@@ -7,8 +7,9 @@ import Leaderboard from './Leaderboard';
 import PitchView from './PitchView';
 import FixtureView from './FixtureView';
 import TeamCarousel from './TeamCarousel';
+import TeamStats from './stats/TeamStats';
 
-type Tab = 'cancha' | 'goleadores' | 'fixture' | 'posicion' | 'fotos';
+type Tab = 'cancha' | 'goleadores' | 'fixture' | 'posicion' | 'stats' | 'fotos';
 
 interface Props {
   players: Player[];
@@ -35,6 +36,9 @@ export default function Dashboard({ players, goals, matches }: Props) {
         <TabButton active={activeTab === 'posicion'}    onClick={() => setActiveTab('posicion')}>
           Por Posición
         </TabButton>
+        <TabButton active={activeTab === 'stats'}       onClick={() => setActiveTab('stats')}>
+          Estadísticas
+        </TabButton>
         <TabButton active={activeTab === 'fotos'}       onClick={() => setActiveTab('fotos')}>
           Fotos
         </TabButton>
@@ -46,6 +50,7 @@ export default function Dashboard({ players, goals, matches }: Props) {
         {activeTab === 'goleadores'  && <Leaderboard  players={players} goals={goals} matches={matches} />}
         {activeTab === 'fixture'     && <FixtureView  matches={matches} goals={goals} players={players} />}
         {activeTab === 'posicion'    && <PositionView players={players} matches={matches} goals={goals} />}
+        {activeTab === 'stats'       && <TeamStats    players={players} matches={matches} goals={goals} />}
         {activeTab === 'fotos'       && <TeamCarousel />}
       </div>
     </div>
