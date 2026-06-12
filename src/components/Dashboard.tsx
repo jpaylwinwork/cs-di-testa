@@ -11,6 +11,15 @@ import TeamStats from './stats/TeamStats';
 
 type Tab = 'cancha' | 'goleadores' | 'fixture' | 'posicion' | 'stats' | 'fotos';
 
+const TABS: { id: Tab; label: string; shortLabel: string }[] = [
+  { id: 'cancha',      label: 'Cancha',       shortLabel: 'Cancha'   },
+  { id: 'goleadores',  label: 'Goleadores',   shortLabel: 'Goles'    },
+  { id: 'fixture',     label: 'Fixture',      shortLabel: 'Fixture'  },
+  { id: 'posicion',    label: 'Por Posición', shortLabel: 'Posición' },
+  { id: 'stats',       label: 'Estadísticas', shortLabel: 'Stats'    },
+  { id: 'fotos',       label: 'Fotos',        shortLabel: 'Fotos'    },
+];
+
 interface Props {
   players: Player[];
   goals: Goal[];
@@ -21,31 +30,23 @@ export default function Dashboard({ players, goals, matches }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('cancha');
 
   return (
-    <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <div className="flex gap-1 p-1 bg-[#11296B]/40 rounded-xl border border-white/10 w-fit">
-        <TabButton active={activeTab === 'cancha'}      onClick={() => setActiveTab('cancha')}>
-          Cancha
-        </TabButton>
-        <TabButton active={activeTab === 'goleadores'}  onClick={() => setActiveTab('goleadores')}>
-          Goleadores
-        </TabButton>
-        <TabButton active={activeTab === 'fixture'}     onClick={() => setActiveTab('fixture')}>
-          Fixture
-        </TabButton>
-        <TabButton active={activeTab === 'posicion'}    onClick={() => setActiveTab('posicion')}>
-          Por Posición
-        </TabButton>
-        <TabButton active={activeTab === 'stats'}       onClick={() => setActiveTab('stats')}>
-          Estadísticas
-        </TabButton>
-        <TabButton active={activeTab === 'fotos'}       onClick={() => setActiveTab('fotos')}>
-          Fotos
-        </TabButton>
+    <div className="space-y-3 sm:space-y-4">
+      <div className="-mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex gap-0.5 sm:gap-1 p-1 bg-[#11296B]/40 rounded-xl border border-white/10 w-max snap-x snap-mandatory">
+          {TABS.map(({ id, label, shortLabel }) => (
+            <TabButton
+              key={id}
+              active={activeTab === id}
+              onClick={() => setActiveTab(id)}
+              shortLabel={shortLabel}
+            >
+              {label}
+            </TabButton>
+          ))}
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4 sm:mt-6">
         {activeTab === 'cancha'      && <PitchView    players={players} matches={matches} goals={goals} />}
         {activeTab === 'goleadores'  && <Leaderboard  players={players} goals={goals} matches={matches} />}
         {activeTab === 'fixture'     && <FixtureView  matches={matches} goals={goals} players={players} />}
@@ -57,19 +58,33 @@ export default function Dashboard({ players, goals, matches }: Props) {
   );
 }
 
-function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function TabButton({
+  active,
+  onClick,
+  shortLabel,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  shortLabel: string;
+  children: React.ReactNode;
+}) {
   return (
     <button
       onClick={onClick}
       className={`
-        px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150 cursor-pointer
+        flex-shrink-0 snap-start px-3 py-1.5 sm:px-5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold
+        transition-all duration-150 cursor-pointer whitespace-nowrap
         ${active
           ? 'bg-[#11296B] text-white shadow-md shadow-black/30'
           : 'text-white/50 hover:text-white/80'
         }
       `}
     >
-      {children}
+      <span className="sm:hidden">{shortLabel}</span>
+      <span className="hidden sm:inline">{children}</span>
     </button>
   );
 }
+
+

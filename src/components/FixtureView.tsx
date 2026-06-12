@@ -41,7 +41,7 @@ export default function FixtureView({ matches, goals, players = [] }: Props) {
   return (
     <div className="space-y-6">
       {/* Season summary strip */}
-      <div className="grid grid-cols-5 gap-2 text-center">
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 text-center">
         {[
           { label: 'PJ', value: played.length,             color: 'text-white'        },
           { label: 'V',  value: totals.wins,               color: 'text-emerald-400'  },
@@ -49,9 +49,9 @@ export default function FixtureView({ matches, goals, players = [] }: Props) {
           { label: 'D',  value: totals.losses,             color: 'text-red-400'      },
           { label: 'GD', value: `${totals.gf}:${totals.ga}`, color: 'text-[#F5A623]' },
         ].map(s => (
-          <div key={s.label} className="bg-[#11296B]/40 rounded-xl py-3 border border-white/10">
-            <div className={`text-xl font-black ${s.color}`}>{s.value}</div>
-            <div className="text-white/40 text-[10px] uppercase tracking-wider">{s.label}</div>
+          <div key={s.label} className="bg-[#11296B]/40 rounded-lg sm:rounded-xl py-2 sm:py-3 border border-white/10">
+            <div className={`text-base sm:text-xl font-black ${s.color}`}>{s.value}</div>
+            <div className="text-white/40 text-[9px] sm:text-[10px] uppercase tracking-wider">{s.label}</div>
           </div>
         ))}
       </div>

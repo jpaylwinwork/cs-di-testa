@@ -4,9 +4,9 @@ import Link from 'next/link';
 export default function Header() {
   return (
     <header className="w-full bg-[#0A1A3E] border-b border-white/10">
-      <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 flex-shrink-0">
+      <div className="max-w-5xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+          <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0">
             <Image
               src="/logo.png"
               alt="CS Di Testa"
@@ -16,20 +16,20 @@ export default function Header() {
               priority
             />
           </div>
-          <div>
-            <h1 className="text-white font-black text-2xl tracking-tight leading-none">
+          <div className="min-w-0">
+            <h1 className="text-white font-black text-lg sm:text-2xl tracking-tight leading-none truncate">
               CS DI TESTA
             </h1>
-            <p className="text-white/50 text-xs tracking-widest uppercase mt-0.5">
+            <p className="text-white/50 text-[10px] sm:text-xs tracking-widest uppercase mt-0.5 truncate">
               Club Social y Deportivo
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="px-3 py-1.5 rounded-full bg-[#F5A623]/15 border border-[#F5A623]/40">
-            <span className="text-[#F5A623] text-xs font-bold tracking-widest uppercase">
-              Temporada 2026
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          <div className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-full bg-[#F5A623]/15 border border-[#F5A623]/40">
+            <span className="text-[#F5A623] text-[10px] sm:text-xs font-bold tracking-widest uppercase whitespace-nowrap">
+              <span className="hidden min-[400px]:inline">Temporada </span>2026
             </span>
           </div>
 

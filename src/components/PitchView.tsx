@@ -146,28 +146,33 @@ export default function PitchView({ players, matches, goals }: Props) {
         </div>
 
         {/* Info bar */}
-        <div className={`flex items-center gap-3 px-4 py-2 rounded-lg border ${activeMatch ? 'bg-[#11296B]/40 border-white/10' : 'bg-[#F5A623]/10 border-[#F5A623]/30'}`}>
+        <div className={`flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border ${activeMatch ? 'bg-[#11296B]/40 border-white/10' : 'bg-[#F5A623]/10 border-[#F5A623]/30'}`}>
           {activeMatch ? (
             <>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded border ${TYPE_BADGE[activeMatch.type]}`}>{activeMatch.type}</span>
-              <span className="text-white font-semibold text-sm">CS Di Testa {activeMatch.goalsFor} — {activeMatch.goalsAgainst} {activeMatch.rival}</span>
-              <span className="text-white/40 text-xs ml-auto">{activeMatch.date !== '?' ? activeMatch.date : ''}</span>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-bold px-2 py-0.5 rounded border flex-shrink-0 ${TYPE_BADGE[activeMatch.type]}`}>{activeMatch.type}</span>
+                {activeMatch.date !== '?' && (
+                  <span className="text-white/40 text-xs sm:hidden">{activeMatch.date}</span>
+                )}
+              </div>
+              <span className="text-white font-semibold text-xs sm:text-sm leading-snug">
+                CS Di Testa {activeMatch.goalsFor} — {activeMatch.goalsAgainst} {activeMatch.rival}
+              </span>
+              <span className="text-white/40 text-xs sm:ml-auto hidden sm:block">{activeMatch.date !== '?' ? activeMatch.date : ''}</span>
             </>
           ) : (
             <>
-              <span className="text-[#F5A623] font-bold text-sm">⭐ Mejor 11 de la Temporada</span>
-              <span className="text-white/40 text-xs ml-auto">Haz clic en un jugador para ver su historial</span>
+              <span className="text-[#F5A623] font-bold text-xs sm:text-sm">⭐ Mejor 11 de la Temporada</span>
+              <span className="text-white/40 text-[10px] sm:text-xs sm:ml-auto">Haz clic en un jugador para ver su historial</span>
             </>
           )}
         </div>
 
-        {/* Pitch — taller on mobile to avoid overlaps */}
+        {/* Pitch — taller aspect ratio on mobile to avoid player overlaps */}
         <div
-          className="relative w-full rounded-2xl overflow-hidden"
-          style={{ paddingBottom: 'clamp(75%, 75%, 65%)', background: '#1a4731' }}
+          className="relative w-full rounded-2xl overflow-hidden pb-[90%] sm:pb-[75%] lg:pb-[65%]"
+          style={{ background: '#1a4731' }}
         >
-          {/* paddingBottom responsive via CSS below */}
-          <style>{`@media (max-width: 639px) { .pitch-wrap { padding-bottom: 90% !important; } }`}</style>
 
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 65" preserveAspectRatio="none">
             <rect x="2" y="2" width="96" height="61" fill="none" stroke="white" strokeWidth="0.4" strokeOpacity="0.2" />
