@@ -558,11 +558,25 @@ export default function AdminPage() {
         return;
       }
       if (!res.ok) {
-        const error = await res.json();
-        alert(`Error al guardar: ${error.error || 'Error desconocido'}`);
+        let errorMsg = 'Error desconocido';
+        try {
+          const error = await res.json();
+          errorMsg = error.error || errorMsg;
+        } catch {
+          errorMsg = `Error ${res.status}: ${res.statusText}`;
+        }
+        alert(`Error al guardar: ${errorMsg}`);
         setSaveStatus('idle');
         return;
       }
+      // Verify response is JSON before parsing
+      const contentType = res.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        alert('Error: Respuesta inválida del servidor');
+        setSaveStatus('idle');
+        return;
+      }
+      await res.json(); // Just consume the response
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err) {
