@@ -6,7 +6,7 @@ import PositionView from './PositionView';
 import Leaderboard from './Leaderboard';
 import PitchView from './PitchView';
 import FixtureView from './FixtureView';
-import TeamCarousel from './TeamCarousel';
+import AlbumGallery from './AlbumGallery';
 import TeamStats from './stats/TeamStats';
 
 type Tab = 'cancha' | 'goleadores' | 'fixture' | 'posicion' | 'stats' | 'fotos';
@@ -17,7 +17,7 @@ const TABS: { id: Tab; label: string; shortLabel: string }[] = [
   { id: 'fixture',     label: 'Fixture',      shortLabel: 'Fixture'  },
   { id: 'posicion',    label: 'Por Posición', shortLabel: 'Posición' },
   { id: 'stats',       label: 'Estadísticas', shortLabel: 'Stats'    },
-  { id: 'fotos',       label: 'Fotos',        shortLabel: 'Fotos'    },
+  { id: 'fotos',       label: 'Álbum',        shortLabel: 'Álbum'    },
 ];
 
 interface Props {
@@ -47,12 +47,18 @@ export default function Dashboard({ players, goals, matches }: Props) {
       </div>
 
       <div className="mt-4 sm:mt-6">
+        {activeTab === 'fotos' && (
+          <div className="mb-4 space-y-1">
+            <h2 className="text-white font-bold text-lg">Álbum Coleccionable del Equipo</h2>
+            <p className="text-white/50 text-sm">Recopilación de momentos y logros del CS Di Testa</p>
+          </div>
+        )}
         {activeTab === 'cancha'      && <PitchView    players={players} matches={matches} goals={goals} />}
         {activeTab === 'goleadores'  && <Leaderboard  players={players} goals={goals} matches={matches} />}
         {activeTab === 'fixture'     && <FixtureView  matches={matches} goals={goals} players={players} />}
         {activeTab === 'posicion'    && <PositionView players={players} matches={matches} goals={goals} />}
         {activeTab === 'stats'       && <TeamStats    players={players} matches={matches} goals={goals} />}
-        {activeTab === 'fotos'       && <TeamCarousel />}
+        {activeTab === 'fotos'       && <AlbumGallery />}
       </div>
     </div>
   );
