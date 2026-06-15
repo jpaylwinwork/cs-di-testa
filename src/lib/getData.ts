@@ -8,11 +8,16 @@ async function readBlob<T>(key: string): Promise<T | null> {
   // Production: use Vercel Blob with OIDC
   if (IS_PRODUCTION) {
     try {
-      const { get } = await import('@vercel/blob');
-      // OIDC automatically provides authentication, no token needed
-      const blob = await get(key);
-      if (!blob) return null;
-      const text = await blob.text();
+      const { list } = await import('@vercel/blob');
+      // OIDC automatically provides authentication
+      const { blobs } = await list();
+      const match = blobs.find(b => b.pathname === key);
+      if (!match) return null;
+
+      // Fetch the blob data
+      const res = await fetch(match.downloadUrl);
+      if (!res.ok) return null;
+      const text = await res.text();
       return JSON.parse(text) as T;
     } catch (err) {
       console.error(`Error reading ${key} from Blob:`, err);
