@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 
 const ALLOWED  = new Set(['matches', 'goals', 'players']);
 const ADMIN_SECRET = process.env.ADMIN_SECRET ?? 'csdt-admin-2026';
-const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+const BLOB_STORE_ID = process.env.BLOB_STORE_ID;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 export async function POST(request: Request) {
@@ -21,28 +22,44 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Production: MUST use Vercel Blob
+    // Production: MUST use Vercel Blob via REST API
     if (IS_PRODUCTION) {
       console.log(`[Blob Save] Starting save for type: ${type}, data length: ${JSON.stringify(data).length}`);
 
-      if (!BLOB_TOKEN) {
-        console.error('[Blob Save] BLOB_TOKEN not found in environment');
+      if (!BLOB_READ_WRITE_TOKEN || !BLOB_STORE_ID) {
+        console.error('[Blob Save] Missing BLOB_READ_WRITE_TOKEN or BLOB_STORE_ID');
         return NextResponse.json(
-          { error: 'Storage not configured. Please ensure BLOB_READ_WRITE_TOKEN is set.' },
+          { error: 'Storage not configured. Missing BLOB credentials.' },
           { status: 503 }
         );
       }
 
       try {
-        const { put } = await import('@vercel/blob');
-        console.log(`[Blob Save] Calling put() for pathname: "${type}"`);
+        const url = `https://blob.vercelusercontent.com/put/${type}`;
+        console.log(`[Blob Save] Saving to: ${url}`);
 
-        const result = await put(type, JSON.stringify(data), {
-          access: 'private',
-          allowOverwrite: true,
-          contentType: 'application/json',
+        const response = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'authorization': `Bearer ${BLOB_READ_WRITE_TOKEN}`,
+            'x-add-random-suffix': 'false',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify(data),
         });
 
+        console.log(`[Blob Save] Response status: ${response.status}`);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[Blob Save] HTTP ${response.status}:`, errorText);
+          return NextResponse.json(
+            { error: `Blob save failed: ${response.status} ${errorText}` },
+            { status: 503 }
+          );
+        }
+
+        const result = await response.json();
         console.log(`[Blob Save] Success! Result:`, result);
         return NextResponse.json({ ok: true, storage: 'blob', result });
       } catch (blobErr) {

@@ -1,29 +1,30 @@
 import { Player, Match, Goal } from '@/data/types';
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 
 // ── Read from Vercel Blob (production) or local JSON (development) ──────────
 
 async function readBlob<T>(key: string): Promise<T | null> {
-  // Production: use Vercel Blob with OIDC
-  if (IS_PRODUCTION) {
+  // Production: use Vercel Blob REST API
+  if (IS_PRODUCTION && BLOB_READ_WRITE_TOKEN) {
     try {
       console.log(`[Blob Read] Attempting to read "${key}" from Blob`);
-      const { list } = await import('@vercel/blob');
 
-      // OIDC automatically provides authentication
-      console.log(`[Blob Read] Calling list()`);
-      const { blobs } = await list();
-      console.log(`[Blob Read] Found ${blobs.length} blobs total`);
+      const url = `https://blob.vercelusercontent.com/get/${key}`;
+      console.log(`[Blob Read] Fetching from: ${url}`);
 
-      const match = blobs.find(b => b.pathname === key);
-      if (!match) {
-        console.log(`[Blob Read] Blob "${key}" not found in list`);
+      const res = await fetch(url, {
+        headers: {
+          'authorization': `Bearer ${BLOB_READ_WRITE_TOKEN}`,
+        },
+      });
+
+      if (res.status === 404) {
+        console.log(`[Blob Read] Blob "${key}" not found (404)`);
         return null;
       }
 
-      console.log(`[Blob Read] Found blob "${key}", downloading from: ${match.downloadUrl}`);
-      const res = await fetch(match.downloadUrl);
       if (!res.ok) {
         console.error(`[Blob Read] Fetch failed with status ${res.status}`);
         return null;
