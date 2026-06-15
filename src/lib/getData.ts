@@ -31,7 +31,11 @@ async function readBlob<T>(key: string): Promise<T | null> {
     const path = await import('path');
     const filePath = path.join(process.cwd(), 'src', 'data', 'runtime', `${key}.json`);
     const raw = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(raw) as T;
+    const parsed = JSON.parse(raw) as T;
+    // Return only if data is non-empty array or object with content
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    if (!Array.isArray(parsed) && Object.keys(parsed as any).length > 0) return parsed;
+    return null; // Return null for empty arrays/objects to trigger fallback
   } catch {
     return null;
   }
