@@ -525,25 +525,50 @@ export default function AdminPage() {
   const [editPlayerData, setEditPlayerData] = useState<{ name: string; spec: SpecificPosition } | null>(null);
 
   const loadData = useCallback(async () => {
-    const res = await fetch('/api/admin/data');
-    const data = await res.json();
-    setPlayers(data.players);
-    setMatches(data.matches);
-    setGoals(data.goals);
-    setLoading(false);
+    try {
+      const res = await fetch('/api/admin/data', { credentials: 'include' });
+      if (res.status === 401) {
+        window.location.href = '/admin/login';
+        return;
+      }
+      const data = await res.json();
+      setPlayers(data.players);
+      setMatches(data.matches);
+      setGoals(data.goals);
+    } catch (err) {
+      console.error('Error loading data:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   async function saveType(type: 'matches' | 'goals' | 'players', data: unknown) {
     setSaveStatus('saving');
-    await fetch('/api/admin/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, data }),
-    });
-    setSaveStatus('saved');
-    setTimeout(() => setSaveStatus('idle'), 2000);
+    try {
+      const res = await fetch('/api/admin/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, data }),
+        credentials: 'include',
+      });
+      if (res.status === 401) {
+        window.location.href = '/admin/login';
+        return;
+      }
+      if (!res.ok) {
+        const error = await res.json();
+        alert(`Error al guardar: ${error.error || 'Error desconocido'}`);
+        setSaveStatus('idle');
+        return;
+      }
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (err) {
+      alert(`Error de conexión: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+      setSaveStatus('idle');
+    }
   }
 
   async function handleMatchSave(updatedMatch: Match, updatedGoals: Goal[]) {
@@ -604,7 +629,11 @@ export default function AdminPage() {
   }
 
   async function handleLogout() {
-    await fetch('/api/admin/logout', { method: 'POST' });
+    try {
+      await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
     window.location.href = '/admin/login';
   }
 

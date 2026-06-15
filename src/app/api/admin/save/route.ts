@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 const ALLOWED  = new Set(['matches', 'goals', 'players']);
+const ADMIN_SECRET = process.env.ADMIN_SECRET ?? 'csdt-admin-2026';
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 
 export async function POST(request: Request) {
+  // Check authentication
+  const cookieStore = await cookies();
+  const token = cookieStore.get('admin_token');
+  if (!token || token.value !== ADMIN_SECRET) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { type, data } = await request.json();
 
   if (!ALLOWED.has(type)) {
