@@ -23,10 +23,34 @@ async function readBlob<T>(key: string): Promise<T | null> {
     }
   }
 
-  // Production: Blob reads from private stores have permission issues
-  // The saves are working, but reads require special handling
-  // Skip Blob reads and fallback to static files for now
-  console.log(`[Blob Read] Blob read skipped for "${key}" (permission issues with private store) - using static files`);
+  // Production: read from public Blob store
+  if (IS_PRODUCTION) {
+    try {
+      const storeId = process.env.BLOB_STORE_ID;
+      if (!storeId) {
+        console.log(`[Blob Read] BLOB_STORE_ID not configured, using static files`);
+        return null;
+      }
+
+      const blobUrl = `https://${storeId}.public.blob.vercelusercontent.com/${key}`;
+      console.log(`[Blob Read] Fetching "${key}" from public Blob: ${blobUrl}`);
+
+      const res = await fetch(blobUrl);
+      if (!res.ok) {
+        console.log(`[Blob Read] Blob fetch failed: ${res.status}`);
+        return null;
+      }
+
+      const text = await res.text();
+      console.log(`[Blob Read] Successfully read ${text.length} bytes from public Blob`);
+      const parsed = JSON.parse(text) as T;
+      return parsed;
+    } catch (err) {
+      console.error(`[Blob Read] Error reading from public Blob:`, err);
+      return null;
+    }
+  }
+
   return null;
 }
 

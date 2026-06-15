@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         console.log(`[Blob Save] Calling put() with access: private, allowOverwrite: true`);
 
         const result = await put(type, JSON.stringify(data), {
-          access: 'private',
+          access: 'public',
           allowOverwrite: true,
           contentType: 'application/json',
         });
