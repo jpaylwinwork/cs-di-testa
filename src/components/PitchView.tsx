@@ -50,13 +50,19 @@ function mapToSlots(names: string[], playerMap: Map<string, Player>): (Player | 
 }
 
 function getBestXI(players: Player[]): string[] {
-  const pick = (pos: Player['position'], n: number) =>
-    players.filter(p => p.position === pos).sort((a, b) => b.starts - a.starts).slice(0, n);
+  const byStarts = (a: Player, b: Player) => b.starts - a.starts;
+  const gk   = players.filter(p => p.position === 'POR').sort(byStarts).slice(0, 1);
+  const defs = players.filter(p => p.position === 'DEF').sort(byStarts).slice(0, 4);
   const mccs = players.filter(p => p.position === 'MED' && ['MCC','MCO'].includes(p.specificPosition))
-    .sort((a, b) => b.starts - a.starts).slice(0, 3);
-  const exts = players.filter(p => p.position === 'MED' && ['EXT','EI','ED'].includes(p.specificPosition))
-    .sort((a, b) => b.starts - a.starts).slice(0, 2);
-  return [...pick('POR',1), ...pick('DEF',4), ...mccs, ...exts, ...pick('DEL',1)].map(p => p.name);
+    .sort(byStarts).slice(0, 3);
+  // Wingers can be DEL or MED with specificPosition EXT/EI/ED
+  const exts = players.filter(p => ['EXT','EI','ED'].includes(p.specificPosition))
+    .sort(byStarts).slice(0, 2);
+  // Striker: best DC not already picked as EXT
+  const extNames = new Set(exts.map(p => p.name));
+  const dcs  = players.filter(p => p.specificPosition === 'DC' && !extNames.has(p.name))
+    .sort(byStarts).slice(0, 1);
+  return [...gk, ...defs, ...mccs, ...exts, ...dcs].map(p => p.name);
 }
 
 // ── Badge styles ─────────────────────────────────────────────────────────────
