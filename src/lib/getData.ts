@@ -8,19 +8,33 @@ async function readBlob<T>(key: string): Promise<T | null> {
   // Production: use Vercel Blob with OIDC
   if (IS_PRODUCTION) {
     try {
+      console.log(`[Blob Read] Attempting to read "${key}" from Blob`);
       const { list } = await import('@vercel/blob');
-      // OIDC automatically provides authentication
-      const { blobs } = await list();
-      const match = blobs.find(b => b.pathname === key);
-      if (!match) return null;
 
-      // Fetch the blob data
+      // OIDC automatically provides authentication
+      console.log(`[Blob Read] Calling list()`);
+      const { blobs } = await list();
+      console.log(`[Blob Read] Found ${blobs.length} blobs total`);
+
+      const match = blobs.find(b => b.pathname === key);
+      if (!match) {
+        console.log(`[Blob Read] Blob "${key}" not found in list`);
+        return null;
+      }
+
+      console.log(`[Blob Read] Found blob "${key}", downloading from: ${match.downloadUrl}`);
       const res = await fetch(match.downloadUrl);
-      if (!res.ok) return null;
+      if (!res.ok) {
+        console.error(`[Blob Read] Fetch failed with status ${res.status}`);
+        return null;
+      }
+
       const text = await res.text();
-      return JSON.parse(text) as T;
+      console.log(`[Blob Read] Successfully read ${text.length} bytes`);
+      const parsed = JSON.parse(text) as T;
+      return parsed;
     } catch (err) {
-      console.error(`Error reading ${key} from Blob:`, err);
+      console.error(`[Blob Read] Error reading ${key} from Blob:`, err);
       return null;
     }
   }

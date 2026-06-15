@@ -23,25 +23,33 @@ export async function POST(request: Request) {
   try {
     // Production: MUST use Vercel Blob
     if (IS_PRODUCTION) {
+      console.log(`[Blob Save] Starting save for type: ${type}, data length: ${JSON.stringify(data).length}`);
+
       if (!BLOB_TOKEN) {
-        console.error('BLOB_TOKEN not found in environment');
+        console.error('[Blob Save] BLOB_TOKEN not found in environment');
         return NextResponse.json(
           { error: 'Storage not configured. Please ensure BLOB_READ_WRITE_TOKEN is set.' },
           { status: 503 }
         );
       }
+
       try {
         const { put } = await import('@vercel/blob');
-        await put(type, JSON.stringify(data), {
+        console.log(`[Blob Save] Calling put() for pathname: "${type}"`);
+
+        const result = await put(type, JSON.stringify(data), {
           access: 'private',
           allowOverwrite: true,
           contentType: 'application/json',
         });
-        return NextResponse.json({ ok: true, storage: 'blob' });
+
+        console.log(`[Blob Save] Success! Result:`, result);
+        return NextResponse.json({ ok: true, storage: 'blob', result });
       } catch (blobErr) {
-        console.error('Blob save error:', blobErr);
+        console.error('[Blob Save] Error:', blobErr);
+        const errorMsg = blobErr instanceof Error ? blobErr.message : JSON.stringify(blobErr);
         return NextResponse.json(
-          { error: `Blob storage error: ${blobErr instanceof Error ? blobErr.message : 'Unknown error'}` },
+          { error: `Blob storage error: ${errorMsg}` },
           { status: 503 }
         );
       }
