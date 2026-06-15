@@ -1,21 +1,21 @@
 import { Player, Match, Goal } from '@/data/types';
 
-const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 // ── Read from Vercel Blob (production) or local JSON (development) ──────────
 
 async function readBlob<T>(key: string): Promise<T | null> {
-  // Production: use Vercel Blob
-  if (BLOB_TOKEN) {
+  // Production: use Vercel Blob with OIDC
+  if (IS_PRODUCTION) {
     try {
-      const { list, head } = await import('@vercel/blob');
-      const { blobs } = await list({ prefix: key, token: BLOB_TOKEN });
-      const match = blobs.find(b => b.pathname === key);
-      if (!match) return null;
-      const res = await fetch(match.url);
-      if (!res.ok) return null;
-      return res.json() as Promise<T>;
-    } catch {
+      const { get } = await import('@vercel/blob');
+      // OIDC automatically provides authentication, no token needed
+      const blob = await get(key);
+      if (!blob) return null;
+      const text = await blob.text();
+      return JSON.parse(text) as T;
+    } catch (err) {
+      console.error(`Error reading ${key} from Blob:`, err);
       return null;
     }
   }
