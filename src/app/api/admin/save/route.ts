@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 const ALLOWED  = new Set(['matches', 'goals', 'players']);
 const ADMIN_SECRET = process.env.ADMIN_SECRET ?? 'csdt-admin-2026';
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 export async function POST(request: Request) {
   // Check authentication
@@ -20,16 +21,31 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Production: save to Vercel Blob
-    if (BLOB_TOKEN) {
-      const { put } = await import('@vercel/blob');
-      await put(type, JSON.stringify(data), {
-        access: 'public',
-        token: BLOB_TOKEN,
-        allowOverwrite: true,
-        contentType: 'application/json',
-      });
-      return NextResponse.json({ ok: true, storage: 'blob' });
+    // Production: MUST use Vercel Blob
+    if (IS_PRODUCTION) {
+      if (!BLOB_TOKEN) {
+        console.error('BLOB_TOKEN not found in environment');
+        return NextResponse.json(
+          { error: 'Storage not configured. Please ensure BLOB_READ_WRITE_TOKEN is set.' },
+          { status: 503 }
+        );
+      }
+      try {
+        const { put } = await import('@vercel/blob');
+        await put(type, JSON.stringify(data), {
+          access: 'public',
+          token: BLOB_TOKEN,
+          allowOverwrite: true,
+          contentType: 'application/json',
+        });
+        return NextResponse.json({ ok: true, storage: 'blob' });
+      } catch (blobErr) {
+        console.error('Blob save error:', blobErr);
+        return NextResponse.json(
+          { error: `Blob storage error: ${blobErr instanceof Error ? blobErr.message : 'Unknown error'}` },
+          { status: 503 }
+        );
+      }
     }
 
     // Development: save to local filesystem
@@ -41,8 +57,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, storage: 'filesystem' });
   } catch (err) {
     console.error(`Save error for ${type}:`, err);
+    const errorMsg = err instanceof Error ? err.message : 'Error al guardar';
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Error al guardar' },
+      { error: errorMsg },
       { status: 500 }
     );
   }
