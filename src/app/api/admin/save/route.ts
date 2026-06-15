@@ -33,8 +33,7 @@ export async function POST(request: Request) {
       try {
         const { put } = await import('@vercel/blob');
         await put(type, JSON.stringify(data), {
-          access: 'public',
-          token: BLOB_TOKEN,
+          access: 'private',
           allowOverwrite: true,
           contentType: 'application/json',
         });
