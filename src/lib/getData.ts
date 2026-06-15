@@ -10,30 +10,26 @@ async function readBlob<T>(key: string): Promise<T | null> {
   if (IS_PRODUCTION) {
     try {
       console.log(`[Blob Read] Attempting to read "${key}" from Blob`);
-      const { list } = await import('@vercel/blob');
+      const { get } = await import('@vercel/blob');
 
-      const { blobs } = await list();
-      console.log(`[Blob Read] Found ${blobs.length} blobs, looking for "${key}"`);
+      // Use SDK's get() method which handles auth properly for private stores
+      const blob = await get(key);
 
-      const blob = blobs.find(b => b.pathname === key);
       if (!blob) {
         console.log(`[Blob Read] Blob "${key}" not found`);
         return null;
       }
 
-      console.log(`[Blob Read] Found blob, downloading from: ${blob.downloadUrl}`);
-      const res = await fetch(blob.downloadUrl);
-
-      if (!res.ok) {
-        console.error(`[Blob Read] Download failed: ${res.status}`);
-        return null;
-      }
-
-      const text = await res.text();
+      const text = await blob.text();
       console.log(`[Blob Read] Successfully read ${text.length} bytes`);
       const parsed = JSON.parse(text) as T;
       return parsed;
     } catch (err) {
+      // 404 is expected for first-time reads before any data is saved
+      if (err instanceof Error && err.message.includes('404')) {
+        console.log(`[Blob Read] Blob "${key}" not found (404 - expected on first load)`);
+        return null;
+      }
       console.error(`[Blob Read] Error reading ${key}:`, err);
       return null;
     }
