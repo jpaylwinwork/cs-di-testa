@@ -1,45 +1,44 @@
 import { NextResponse } from 'next/server';
+import { getMatches } from '@/lib/getData';
 
 export async function GET() {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-  const storeId = process.env.BLOB_STORE_ID;
-
   const log: string[] = [];
-  log.push(`TOKEN present: ${!!token}`);
-  log.push(`TOKEN prefix: ${token?.slice(0, 20)}...`);
-  log.push(`STORE_ID: ${storeId}`);
+  log.push(`NODE_ENV: ${process.env.NODE_ENV}`);
+  log.push(`TOKEN present: ${!!process.env.BLOB_READ_WRITE_TOKEN}`);
 
+  // Test direct Blob get
   try {
     const { get, list } = await import('@vercel/blob');
-
-    // Try listing blobs first to see what's in the store
-    log.push('Calling list()...');
     const { blobs } = await list();
-    log.push(`Found ${blobs.length} blobs: ${blobs.map(b => b.pathname).join(', ')}`);
+    log.push(`list() found: ${blobs.map(b => b.pathname).join(', ')}`);
 
-    // Try getting 'matches' blob
-    log.push('Calling get("matches", { access: "private" })...');
     const result = await get('matches', { access: 'private' });
     if (!result) {
-      log.push('get() returned null - blob not found');
-    } else {
-      log.push(`get() statusCode: ${result.statusCode}`);
-    }
-
-    if (result && result.statusCode === 200 && result.stream) {
+      log.push('get() returned null');
+    } else if (result.statusCode === 200 && result.stream) {
       const reader = result.stream.getReader();
       const decoder = new TextDecoder();
       let text = '';
       let chunk;
-      while (!(chunk = await reader.read()).done) {
-        text += decoder.decode(chunk.value, { stream: true });
-      }
+      while (!(chunk = await reader.read()).done) text += decoder.decode(chunk.value, { stream: true });
       text += decoder.decode();
-      log.push(`Read ${text.length} bytes, first 100: ${text.slice(0, 100)}`);
+      const parsed = JSON.parse(text);
+      log.push(`Direct Blob get() OK - first match date: ${parsed[0]?.date}, rival: ${parsed[0]?.rival}`);
+    } else {
+      log.push(`get() statusCode: ${result.statusCode} - no stream`);
     }
-
   } catch (err) {
-    log.push(`ERROR: ${err instanceof Error ? `${err.name}: ${err.message}` : JSON.stringify(err)}`);
+    log.push(`Direct Blob ERROR: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  // Test via getData.ts
+  try {
+    log.push('Calling getMatches() from getData.ts...');
+    const matches = await getMatches();
+    log.push(`getMatches() returned ${matches.length} matches`);
+    log.push(`First match: date=${matches[0]?.date}, rival=${matches[0]?.rival}`);
+  } catch (err) {
+    log.push(`getMatches() ERROR: ${err instanceof Error ? err.message : String(err)}`);
   }
 
   return NextResponse.json({ log });
