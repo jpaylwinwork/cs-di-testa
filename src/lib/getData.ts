@@ -23,32 +23,11 @@ async function readBlob<T>(key: string): Promise<T | null> {
     }
   }
 
-  // Production: read from public Blob store
+  // Production: Blob store is currently private, so reads fail
+  // Once store is changed to public via Vercel dashboard, will be able to read
   if (IS_PRODUCTION) {
-    try {
-      const storeId = process.env.BLOB_STORE_ID;
-      if (!storeId) {
-        console.log(`[Blob Read] BLOB_STORE_ID not configured, using static files`);
-        return null;
-      }
-
-      const blobUrl = `https://${storeId}.public.blob.vercelusercontent.com/${key}`;
-      console.log(`[Blob Read] Fetching "${key}" from public Blob: ${blobUrl}`);
-
-      const res = await fetch(blobUrl);
-      if (!res.ok) {
-        console.log(`[Blob Read] Blob fetch failed: ${res.status}`);
-        return null;
-      }
-
-      const text = await res.text();
-      console.log(`[Blob Read] Successfully read ${text.length} bytes from public Blob`);
-      const parsed = JSON.parse(text) as T;
-      return parsed;
-    } catch (err) {
-      console.error(`[Blob Read] Error reading from public Blob:`, err);
-      return null;
-    }
+    console.log(`[Blob Read] Blob store is private - using static files as fallback`);
+    return null;
   }
 
   return null;
