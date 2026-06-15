@@ -6,27 +6,26 @@ const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 // ── Read from Vercel Blob (production) or local JSON (development) ──────────
 
 async function readBlob<T>(key: string): Promise<T | null> {
-  // Production: use Vercel Blob REST API
-  if (IS_PRODUCTION && BLOB_READ_WRITE_TOKEN) {
+  // Production: use Vercel Blob SDK
+  if (IS_PRODUCTION) {
     try {
       console.log(`[Blob Read] Attempting to read "${key}" from Blob`);
+      const { list } = await import('@vercel/blob');
 
-      const url = `https://blob.vercelusercontent.com/get/${key}`;
-      console.log(`[Blob Read] Fetching from: ${url}`);
+      const { blobs } = await list();
+      console.log(`[Blob Read] Found ${blobs.length} blobs, looking for "${key}"`);
 
-      const res = await fetch(url, {
-        headers: {
-          'authorization': `Bearer ${BLOB_READ_WRITE_TOKEN}`,
-        },
-      });
-
-      if (res.status === 404) {
-        console.log(`[Blob Read] Blob "${key}" not found (404)`);
+      const blob = blobs.find(b => b.pathname === key);
+      if (!blob) {
+        console.log(`[Blob Read] Blob "${key}" not found`);
         return null;
       }
 
+      console.log(`[Blob Read] Found blob, downloading from: ${blob.downloadUrl}`);
+      const res = await fetch(blob.downloadUrl);
+
       if (!res.ok) {
-        console.error(`[Blob Read] Fetch failed with status ${res.status}`);
+        console.error(`[Blob Read] Download failed: ${res.status}`);
         return null;
       }
 
@@ -35,7 +34,7 @@ async function readBlob<T>(key: string): Promise<T | null> {
       const parsed = JSON.parse(text) as T;
       return parsed;
     } catch (err) {
-      console.error(`[Blob Read] Error reading ${key} from Blob:`, err);
+      console.error(`[Blob Read] Error reading ${key}:`, err);
       return null;
     }
   }

@@ -22,51 +22,30 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Production: MUST use Vercel Blob via REST API
+    // Production: use Vercel Blob SDK (official/supported)
     if (IS_PRODUCTION) {
-      console.log(`[Blob Save] Starting save for type: ${type}, data length: ${JSON.stringify(data).length}`);
-
-      if (!BLOB_READ_WRITE_TOKEN || !BLOB_STORE_ID) {
-        console.error('[Blob Save] Missing BLOB_READ_WRITE_TOKEN or BLOB_STORE_ID');
-        return NextResponse.json(
-          { error: 'Storage not configured. Missing BLOB credentials.' },
-          { status: 503 }
-        );
-      }
+      console.log(`[Blob Save] Starting SDK-based save for type: ${type}`);
 
       try {
-        const url = `https://blob.vercelusercontent.com/put/${type}`;
-        console.log(`[Blob Save] Saving to: ${url}`);
+        const { put } = await import('@vercel/blob');
+        console.log(`[Blob Save] Calling put() with access: private, allowOverwrite: true`);
 
-        const response = await fetch(url, {
-          method: 'PUT',
-          headers: {
-            'authorization': `Bearer ${BLOB_READ_WRITE_TOKEN}`,
-            'x-add-random-suffix': 'false',
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify(data),
+        const result = await put(type, JSON.stringify(data), {
+          access: 'private',
+          allowOverwrite: true,
+          contentType: 'application/json',
         });
 
-        console.log(`[Blob Save] Response status: ${response.status}`);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`[Blob Save] HTTP ${response.status}:`, errorText);
-          return NextResponse.json(
-            { error: `Blob save failed: ${response.status} ${errorText}` },
-            { status: 503 }
-          );
-        }
-
-        const result = await response.json();
-        console.log(`[Blob Save] Success! Result:`, result);
-        return NextResponse.json({ ok: true, storage: 'blob', result });
+        console.log(`[Blob Save] Success! URL:`, result.url);
+        return NextResponse.json({ ok: true, storage: 'blob', url: result.url });
       } catch (blobErr) {
-        console.error('[Blob Save] Error:', blobErr);
-        const errorMsg = blobErr instanceof Error ? blobErr.message : JSON.stringify(blobErr);
+        const errorMsg = blobErr instanceof Error
+          ? `${blobErr.name}: ${blobErr.message}`
+          : JSON.stringify(blobErr);
+        console.error('[Blob Save] SDK error:', errorMsg);
+        console.error('[Blob Save] Full error:', blobErr);
         return NextResponse.json(
-          { error: `Blob storage error: ${errorMsg}` },
+          { error: `Blob save failed: ${errorMsg}` },
           { status: 503 }
         );
       }
