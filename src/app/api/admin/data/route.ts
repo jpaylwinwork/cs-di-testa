@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getPlayers, getMatches, getGoals } from '@/lib/getData';
 
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 const ADMIN_SECRET = process.env.ADMIN_SECRET ?? 'csdt-admin-2026';
 
 export async function GET() {
