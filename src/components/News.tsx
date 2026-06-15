@@ -13,31 +13,24 @@ interface NewsItem {
 const NEWS_ITEMS: NewsItem[] = [
   {
     id: '1',
-    emoji: '🎉',
-    title: 'FIESTA TESTANA',
-    text: '+3 el martes; +3 el jueves y +3 en Mendoza. Semana redonda de +9 ptos para los Toros de Fontova.',
-    date: '27/05/2026',
+    emoji: '🔥',
+    title: 'PIBE INTRATABLE',
+    text: 'Pibe sigue intratable y marca 2 goles más esta fecha. ¿Alguien lo para?',
+    date: '15/06/2026',
   },
   {
     id: '2',
-    emoji: '🤯',
-    title: 'INSÓLITO',
-    text: 'Pedro Córdova NO perdió NINGUNA PELOTA durante todo el partido. ¡Desnudez TOTAL del toro de ojos locos!',
-    date: '27/05/2026',
+    emoji: '🐣',
+    title: 'DEBUT GOLEADOR',
+    text: 'Debut goleador de uno de los terneros: Borja Patrón. ¡Felicidades crack!',
+    date: '15/06/2026',
   },
   {
     id: '3',
-    emoji: '💪',
-    title: 'CAEN ALGUNOS 100%',
-    text: 'Felicidades a los toros que mantienen su compromiso absoluto con el equipo. Lo de Barriga es tremendo.',
-    date: '27/05/2026',
-  },
-  {
-    id: '4',
-    emoji: '🏆',
-    title: 'VIENE LO MEJOR...',
-    text: 'Kuramen el martes para cerrar fase regular. De ganar los próximos 3 partidos, el toro se coronaría campeón.',
-    date: '27/05/2026',
+    emoji: '⚔️',
+    title: 'SE VIENE LA SEMI',
+    text: 'Linda semana por delante: semifinal testana vs. Cabaleros. ¡Todos a las canchas!',
+    date: '15/06/2026',
   },
 ];
 
