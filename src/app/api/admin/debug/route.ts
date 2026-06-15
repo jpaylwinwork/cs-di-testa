@@ -21,9 +21,8 @@ export async function GET() {
     log.push('Calling get("matches", { access: "private" })...');
     const result = await get('matches', { access: 'private' });
     log.push(`get() statusCode: ${result.statusCode}`);
-    log.push(`get() stream null: ${result.stream === null}`);
 
-    if (result.stream) {
+    if (result.statusCode === 200 && result.stream) {
       const reader = result.stream.getReader();
       const decoder = new TextDecoder();
       let text = '';
