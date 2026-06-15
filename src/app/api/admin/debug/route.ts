@@ -20,9 +20,13 @@ export async function GET() {
     // Try getting 'matches' blob
     log.push('Calling get("matches", { access: "private" })...');
     const result = await get('matches', { access: 'private' });
-    log.push(`get() statusCode: ${result.statusCode}`);
+    if (!result) {
+      log.push('get() returned null - blob not found');
+    } else {
+      log.push(`get() statusCode: ${result.statusCode}`);
+    }
 
-    if (result.statusCode === 200 && result.stream) {
+    if (result && result.statusCode === 200 && result.stream) {
       const reader = result.stream.getReader();
       const decoder = new TextDecoder();
       let text = '';

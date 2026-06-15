@@ -31,8 +31,8 @@ async function readBlob<T>(key: string): Promise<T | null> {
 
       const result = await get(key, { access: 'private' });
 
-      if (!result || !result.stream) {
-        console.log(`[Blob Read] Blob "${key}" not found or no stream`);
+      if (!result || result.statusCode !== 200 || !result.stream) {
+        console.log(`[Blob Read] Blob "${key}" not found or no stream (statusCode: ${result?.statusCode})`);
         return null;
       }
 
