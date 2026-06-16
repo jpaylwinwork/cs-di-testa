@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CS Di Testa — Panel de Estadísticas
 
-## Getting Started
+Dashboard de estadísticas en tiempo real para CS Di Testa, un equipo de fútbol amateur que juega los domingos. Los jugadores pueden ver sus stats individuales de la temporada, el fixture, el álbum del equipo y el historial de partidos.
 
-First, run the development server:
+**Live:** https://www.ditesta.club
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Qué Tiene
+
+- **Dashboard de stats** — goles, asistencias, presencias y titularidades por jugador
+- **Vista por posición** — agrupado en GK / DEF / MED / DEL, con highlight al mejor de cada línea
+- **Leaderboard ordenable** — tabla completa con sort por cualquier columna
+- **Vista de cancha** — jugadores posicionados en el campo según su posición
+- **Fixture** — calendario de partidos con resultado y modal de detalle
+- **Álbum del equipo** — galería de fotos de la temporada
+- **Panel de admin** — para actualizar datos sin tocar código ni redesployar
+
+---
+
+## Arquitectura
+
+La parte interesante no es la UI — es cómo se actualiza la data.
+
+```
+┌─────────────────────────────────────────────┐
+│  Admin Panel (/admin)                        │
+│  Autenticación por cookie · Acceso protegido │
+└──────────────────┬──────────────────────────┘
+                   │ POST /api/update
+                   ▼
+┌─────────────────────────────────────────────┐
+│  Vercel Blob (private)                       │
+│  players.json · matches.json · goals.json    │
+└──────────────────┬──────────────────────────┘
+                   │ getPlayers() / getMatches() / getGoals()
+                   ▼
+┌─────────────────────────────────────────────┐
+│  Next.js Server Components (SSR)             │
+│  Lee Blob en prod · JSON local en dev        │
+└─────────────────────────────────────────────┘
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+El adminl actualiza los datos vía Blob — el sitio refleja los cambios en el siguiente request, sin redeploy. En desarrollo, la app cae a archivos JSON locales como fallback.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Stack
 
-## Learn More
+- **Next.js 16** (App Router, Server Components)
+- **TypeScript**
+- **Tailwind CSS v4**
+- **Vercel Blob** — persistencia de datos en producción
+- **lucide-react** — iconografía
+- **Dominio custom:** ditesta.club
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Cómo Correrlo Localmente
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+npm run dev
+```
 
-## Deploy on Vercel
+Para datos en desarrollo, crea `src/data/runtime/players.json`, `matches.json` y `goals.json` — o deja los archivos `.ts` estáticos como fuente.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Decisiones de Producto
+
+- **Blob sobre base de datos** — para un equipo de 25 personas, una base de datos es overkill. Blob + JSON es suficiente, sin costo adicional y sin operaciones.
+- **Admin con cookie simple** — no necesita OAuth ni user management. Un secret compartido basta para el caso de uso.
+- **SSR sin caché** — `force-dynamic` asegura que cada visita ve los datos más recientes del Blob, sin TTL ni invalidación manual.
+- **Fallback estático** — en dev no dependés de Vercel Blob. Los datos `.ts` sirven de fuente hasta que haya datos reales en el Blob.
